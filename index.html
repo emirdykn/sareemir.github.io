@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Seni Seviyorum Aşkım</title>
+<style>
+  html,body{height:100%;margin:0;display:flex;justify-content:center;align-items:center;background:#0a0a14;overflow:hidden;font-family:sans-serif}
+  canvas{background:transparent}
+  .text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:48px;font-weight:bold;display:none}
+  .letter{display:inline-block;animation:pop 0.6s ease-out forwards}
+  @keyframes pop{
+    0%{opacity:0;transform:scale(0.5) translateY(20px)}
+    80%{opacity:1;transform:scale(1.1) translateY(-5px)}
+    100%{opacity:1;transform:scale(1) translateY(0)}
+  }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="text" id="t"></div>
+<script>
+const c=document.getElementById("c"),ctx=c.getContext("2d");
+let w=innerWidth,h=innerHeight;c.width=w;c.height=h;
+const points=[];
+for(let i=0;i<600;i++){
+  const ang=Math.PI*2*i/600;
+  const x=16*Math.pow(Math.sin(ang),3);
+  const y=13*Math.cos(ang)-5*Math.cos(2*ang)-2*Math.cos(3*ang)-Math.cos(4*ang);
+  points.push({x:x,y:-y});
+}
+let drawn=0;
+function drawHeart(){
+  if(drawn<points.length){
+    for(let i=0;i<5;i++){
+      if(drawn>=points.length)return;
+      const p=points[drawn];
+      const size=Math.random()*3+1;
+      ctx.strokeStyle=`rgba(255,0,0,${Math.random()*0.6+0.4})`;
+      ctx.beginPath();
+      ctx.moveTo(w/2+p.x*10,h/2+p.y*10);
+      ctx.lineTo(w/2+p.x*10+Math.random()*2-1,h/2+p.y*10+Math.random()*2-1);
+      ctx.lineWidth=size;
+      ctx.stroke();
+      drawn++;
+    }
+    requestAnimationFrame(drawHeart);
+  }else{
+    setTimeout(()=>explode(),2000);
+  }
+}
+function explode(){
+  const particles=[];
+  for(let i=0;i<120;i++){
+    particles.push({
+      x:w/2,y:h/2,
+      vx:(Math.random()-0.5)*10,
+      vy:(Math.random()-0.5)*10,
+      a:Math.random()*Math.PI*2,
+      color:`hsl(${Math.random()*360},100%,60%)`,
+      life:Math.random()*40+40
+    });
+  }
+  const interval=setInterval(()=>{
+    ctx.fillStyle="rgba(10,10,20,0.2)";
+    ctx.fillRect(0,0,w,h);
+    particles.forEach(p=>{
+      ctx.fillStyle=p.color;
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,3,0,Math.PI*2);
+      ctx.fill();
+      p.x+=p.vx;
+      p.y+=p.vy;
+      p.vy+=0.15;
+      p.life--;
+    });
+    if(particles.every(p=>p.life<=0)){
+      clearInterval(interval);
+      showText();
+    }
+  },30);
+}
+function showText(){
+  document.body.style.background="#b30000"
+  const text="seni seviyorum aşkım";
+  const div=document.getElementById("t");
+  div.style.display="flex";
+  div.innerHTML="";
+  for(let i=0;i<text.length;i++){
+    const span=document.createElement("span");
+    span.className="letter";
+    span.style.color=`hsl(${Math.random()*360},100%,60%)`;
+    span.style.animationDelay=`${i*0.1}s`;
+    span.textContent=text[i];
+    div.appendChild(span);
+  }
+}
+drawHeart();
+</script>
+</body>
+</html>
